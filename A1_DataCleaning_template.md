@@ -138,6 +138,14 @@ or google “how to rename variables in R”. Or check the janitor R
 package. There are always multiple ways of solving any problem and no
 absolute best method.
 
+``` r
+ggplot(demo_train, aes(Age, Visit)) + geom_line()
+```
+
+    ## Warning: Removed 10 rows containing missing values (geom_path).
+
+![](A1_DataCleaning_template_files/figure-markdown_github/unnamed-chunk-3-1.png)
+
 2b. Find a way to homogeneize the way “visit” is reported (visit1
 vs. 1).
 
