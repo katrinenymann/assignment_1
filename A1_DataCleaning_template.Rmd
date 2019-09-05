@@ -95,7 +95,8 @@ Tip: look through the chapter on data transformation in R for data science (http
 
 
 ```{r}
-ggplot(demo_train, aes(Age, Visit)) + geom_line()
+plot <- ggplot(demo_train, aes(Age, Visit)) + geom_line()
+plot
 ```
 
 2b. Find a way to homogeneize the way "visit" is reported (visit1 vs. 1).
