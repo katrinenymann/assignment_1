@@ -95,8 +95,12 @@ Tip: look through the chapter on data transformation in R for data science (http
 
 
 ```{r}
-plot <- ggplot(demo_train, aes(Age, Visit)) + geom_line()
-plot
+#We rename the subjects column
+demo_train <- rename(demo_train, SUBJ = Child.ID) #We rename the column so they are the same
+
+#WE rename the Visit column
+demo_train <- rename(demo_train, VISIT = Visit) 
+
 ```
 
 2b. Find a way to homogeneize the way "visit" is reported (visit1 vs. 1).
@@ -105,8 +109,11 @@ Tip: The stringr package is what you need. str_extract () will allow you to extr
 
 
 ```{r}
-
-
+#We want to make the values in visit the same
+token_train$VISIT <- gsub("[a-zA-Z ]", "", token_train$VISIT)
+token_train$VISIT <- gsub("[.]", "", token_train$VISIT)
+LU_train$VISIT <- gsub("[a-zA-Z ]", "", LU_train$VISIT)
+LU_train$VISIT <- gsub("[.]", "", LU_train$VISIT)
 ```
 
 2c. We also need to make a small adjustment to the content of the Child.ID coloumn in the demographic data. Within this column, names that are not abbreviations do not end with "." (i.e. Adam), which is the case in the other two data sets (i.e. Adam.). If The content of the two variables isn't identical the rows will not be merged.
@@ -117,7 +124,10 @@ Tip: You can either have one line of code for each child name that is to be chan
 
 
 ```{r}
-
+#We remove punctuation from SUBJ
+LU_train$SUBJ <- gsub("[.]", "", LU_train$SUBJ)
+demo_train$SUBJ <- gsub("[.]", "", demo_train$SUBJ)
+token_train$SUBJ <- gsub("[.]", "", token_train$SUBJ)
 ```
 
 2d. Now that the nitty gritty details of the different data sets are fixed, we want to make a subset of each data set only containig the variables that we wish to use in the final data set.
@@ -153,6 +163,14 @@ Most variables should make sense, here the less intuitive ones.
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
+#We will make a dataset only including the variables we need
+pacman::p_load(tidyverse)
+
+demo <- select(demo_train, SUBJ, VISIT, Diagnosis, Ethnicity, Gender, Age, ASD_level = ADOS, nonVerbalIQ = MullenRaw, VerbalIQ = ExpressiveLangRaw, Socialization)
+
+LU <-  select(LU_train, SUBJ, VISIT, MOT_MLU, CHI_MLU)
+
+token <- select(token_train, SUBJ, VISIT,  types_MOT, types_CHI, tokens_MOT, tokens_CHI)
 
 ```
 
@@ -162,14 +180,17 @@ Some things to pay attention to:
 * make sure to check that the merge has included all relevant data (e.g. by comparing the number of rows)
 * make sure to understand whether (and if so why) there are NAs in the dataset (e.g. some measures were not taken at all visits, some recordings were lost or permission to use was withdrawn)
 
-```{r}
-
-
+```{r} 
+#We will merge the data together into one dataframe
+#We can only do two at a time
+demo_LU <- merge(demo, LU)
+#And then all together
+df_train <- merge(demo_LU, token)
 ```
 
 
 2f. Only using clinical measures from Visit 1
-In order for our models to be useful, we want to miimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
+In order for our models to be useful, we want to minimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
 
 A possible way to do so:
 * create a new dataset with only visit 1, child id and the 4 relevant clinical variables to be merged with the old dataset
@@ -178,7 +199,16 @@ A possible way to do so:
 
 
 
-```{r}
+```{r} 
+#We want unique data for visit 1
+#We filter out visit 1 data
+visit_1 <- filter(df_train, VISIT == 1)
+
+#We select only the variables we wish. We also rename
+visit_1 <- select(visit_1, SUBJ, ASD_level_1 = ASD_level, nonVerbalIQ_1 = nonVerbalIQ, VerbalIQ_1 = VerbalIQ, Socialization_1 = Socialization)
+
+#We merge it together
+df_train <- merge(df_train, visit_1)
 
 ```
 
@@ -190,6 +220,21 @@ Now we want to
 * Save the data set using into a csv file. Hint: look into write.csv()
 
 ```{r}
+#We will anonymize our participants 
+df_train$SUBJ <- as.factor(df_train$SUBJ)
+ID <- (1:61)
+
+#We use levels so it will go the the next name when giving new number
+levels(df_train$SUBJ) <- ID
+
+#We will give sensible names
+#We change gender values
+df_train$Gender <- ifelse(df_train$Gender == 1, "F", "M") 
+#We change the diagnosis names
+df_train$Diagnosis <- ifelse(df_train$Diagnosis == "A", "ASD", "TD")
+
+#We save the dataframe
+write.csv(df_train, "df_train.csv")
 
 ```
 
