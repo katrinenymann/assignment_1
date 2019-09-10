@@ -307,6 +307,18 @@ write.csv(df_train, "df_train.csv")
     first visit
 3.  have not completed all trials. Tip: Use pipes to solve this
 
+``` r
+#1) The children with a MLU of more than 2.7 morphemes 
+long_MLU <- filter(df_train, CHI_MLU > 2.7) 
+
+#2) The children who at the first visit have less than 1.5 MLU
+short_1_MLU <- filter(df_train, CHI_MLU < 1.5 & VISIT == 1)
+
+#3) The children who have not completed all trials
+#Grouper subj som så bliver sumarised number som er antallet af kollonner de har og så filtrer dem der har mindre end 6 kolonner (mindre end 6 besøg)
+no_complete <- df_train %>% group_by(SUBJ) %>% summarise("number" = n()) %>% filter(number < 6)
+```
+
 USING ARRANGE
 
 1.  Sort kids to find the kid who produced the most words on the 6th
@@ -314,12 +326,32 @@ USING ARRANGE
 2.  Sort kids to find the kid who produced the least amount of words on
     the 1st visit.
 
+``` r
+#We sort the kids to find who produced the most words on the 6th visit
+most_words <- df_train %>% filter(VISIT == 6) %>% arrange(desc(tokens_CHI))
+#Participant 55 produced the most words on the 6th visit
+
+# We sort the kids to find the kid who produced the least words on the 1st visit
+least_words <- df_train %>% filter(VISIT == 1) %>% arrange(tokens_CHI)
+#Participant 57 produced the least words on the first visit
+```
+
 USING SELECT
 
 1.  Make a subset of the data including only kids with ASD, mlu and word
     tokens
 2.  What happens if you include the name of a variable multiple times in
     a select() call?
+
+``` r
+#1) We make a subset with only ASD, MLU and words tokens
+subset <- select(df_train, SUBJ, Diagnosis, CHI_MLU, tokens_CHI)
+subset <- filter(subset, Diagnosis == "ASD")
+
+#2) 
+subset <- select(df_train, SUBJ, SUBJ, Diagnosis, CHI_MLU, tokens_CHI)
+#nothing
+```
 
 USING MUTATE, SUMMARISE and PIPES 1. Add a column to the data set that
 represents the mean number of words spoken during all visits. 2. Use the
@@ -329,3 +361,13 @@ group by Child.ID 3. The solution to task above enables us to assess the
 average amount of words produced by each child. Why don’t we just use
 these average values to describe the language production of the
 children? What is the advantage of keeping all the data?
+
+``` r
+#Mean number of words during all visits
+df_train$mean_words <- mean(df_train$tokens_CHI)
+
+#2) We add a column containing mean words for each child across all visits
+mean_CHI_words <- df_train %>% group_by(SUBJ) %>% summarise(mean_CHI = mean(tokens_CHI))
+#Then we merge together 
+df_train <- merge(df_train, mean_CHI_words)
+```
