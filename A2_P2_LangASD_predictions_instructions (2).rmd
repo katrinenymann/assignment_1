@@ -212,6 +212,35 @@ performances
 # Bonus Question 1: What is the effect of changing the number of folds? Can you plot RMSE as a function of number of folds?
 # Bonus Question 2: compare the cross-validated predictive error against the actual predictive error on the test data
 ```
+```{r} 
+### Cross validation of another model to compare ###
+
+performances <- c() # We create an empty vector for the performances
+#### loop for running cross validation ####
+for (k in 1:max(df_train$fold)){ 
+  fold_k <- as.integer(as.character(k)) # Convert k to integer 
+  
+  # assign test and training set according to the current folds
+  train_df <- as.data.frame(df_train[df_train$fold != fold_k, ]) #training set without the current foldindex
+  test_df <- as.data.frame(df_train[df_train$fold == fold_k, ]) #test set with only the current foldindex
+  
+# We create our model
+  model <- lmer(CHI_MLU ~ Visit*Diagnosis*verbalIQ1 + (1+Visit|Child.ID), data = train_df, REML =F, lmerControl(optCtrl=list(xtol_abs=1e-8, ftol_abs=1e-8)))
+
+# Run our predictions 
+  prediction <- predict(model, test_df, allow.new.levels =T)
+  
+#Calculate the rmse for each fold 
+  rmse <- rmse(test_df$CHI_MLU, prediction)
+  message(paste("RMSE for fold", fold_k, rmse)) # print RMSE for each fold to console
+  performances[k] <- rmse # register rmse value to 'performances'vector
+}
+
+# calculate mean RMSE and print it
+performances = mean(performances)
+performances
+
+```
 
 [HERE GOES YOUR ANSWER]
 
@@ -231,6 +260,10 @@ You want to evaluate:
 #We subset the data for Bernie - he has child.id 2
 bernie <- subset(df_test, Child.ID==2)
 td <- subset(df_train, Diagnosis == "TD")
+asd <- subset(df_train, Diagnosis == "ASD")
+asd_model <- lmer(CHI_MLU ~ Visit*verbalIQ1 + (1+Visit|Child.ID), data = asd, REML =F, lmerControl(optCtrl=list(xtol_abs=1e-8, ftol_abs=1e-8)))
+
+td_model <- lmer(CHI_MLU ~ Visit*verbalIQ1 + (1+Visit|Child.ID), data = td, REML =F, lmerControl(optCtrl=list(xtol_abs=1e-8, ftol_abs=1e-8)))
 
 # The development over time
 diff_1 <- abs(bernie$CHI_MLU[1]-mean(td$CHI_MLU[1]))
@@ -239,12 +272,21 @@ diff_3 <- abs(bernie$CHI_MLU[3]-mean(td$CHI_MLU[3]))
 diff_4 <- abs(bernie$CHI_MLU[4]-mean(td$CHI_MLU[4]))
 diff_5 <- abs(bernie$CHI_MLU[5]-mean(td$CHI_MLU[5]))
 diff_6 <- abs(bernie$CHI_MLU[6]-mean(td$CHI_MLU[6]))
+diff_1
+diff_2
+diff_3
+diff_4
+diff_5
+
+pred1 <- predict(td_model, bernie, allow.new.levels = TRUE)
+pred2 <- predict(asd_model, bernie, allow.new.levels = TRUE)
 
 
-predict(m1, bernie)
+bernie$CHI_MLU[6]-pred1[[6]] #This is Bernies MLU at visit 6
+#Bernie is below expectations of td 
 
-bernie$CHI_MLU[6]-3.887794
-#Bernie is below expectations 
+bernie$CHI_MLU[6]-pred2[[6]]
+#He is slightly above expectations of an ASD child
 ```
 
 
