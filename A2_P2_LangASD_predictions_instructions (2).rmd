@@ -2,7 +2,9 @@
 title: "Assignment 2 - Language Development in ASD - Making predictions"
 author: "Katrine Nymann"
 date: "August 25, 2019"
-output: html_document
+output: 
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
@@ -129,6 +131,9 @@ rmse(df_train$CHI_MLU[!is.na(df_train$CHI_MLU)], predict_2)
 #- create the test dataset (apply the code from assignment 1 or my function to clean up the 3 test datasets)
 # Test data
 df_test <- CleanUpData(Demo, LU, Word)
+
+write.csv(df_test, "df_test.csv")
+write.csv(df_train, "df_train.csv")
 
 #- test the performance of the models on the test data (Tips: google the functions "predict()")
 df_test <- subset(df_test, (!is.na(df_test$CHI_MLU)))
