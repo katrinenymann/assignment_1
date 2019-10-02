@@ -127,15 +127,15 @@ for (k in 1:max(df_train$fold)){
 }
 ```
 
-    ## RMSE for fold 1 0.665679764926683
+    ## RMSE for fold 1 0.635556453765192
 
-    ## RMSE for fold 2 0.733642972843212
+    ## RMSE for fold 2 0.70652529329183
 
-    ## RMSE for fold 3 0.68694411811126
+    ## RMSE for fold 3 0.778874655912837
 
-    ## RMSE for fold 4 0.926677977924452
+    ## RMSE for fold 4 0.714581952506953
 
-    ## RMSE for fold 5 0.742699303122523
+    ## RMSE for fold 5 0.961419823056665
 
 ``` r
 # calculate mean RMSE and print it
@@ -143,7 +143,7 @@ performances = mean(performances)
 performances
 ```
 
-    ## [1] 0.7511288
+    ## [1] 0.7593916
 
 ``` r
 # Bonus Question 1: What is the effect of changing the number of folds? Can you plot RMSE as a function of number of folds?
@@ -151,7 +151,7 @@ performances
 ```
 
 ``` r
-### Cross validation of another model to compare ###
+### Cross validation of another model with verbal IQ###
 
 performances <- c() # We create an empty vector for the performances
 #### loop for running cross validation ####
@@ -175,15 +175,15 @@ for (k in 1:max(df_train$fold)){
 }
 ```
 
-    ## RMSE for fold 1 0.554722130876518
+    ## RMSE for fold 1 0.517896052902403
 
-    ## RMSE for fold 2 0.554576165042517
+    ## RMSE for fold 2 0.49459844474655
 
-    ## RMSE for fold 3 0.594166954840663
+    ## RMSE for fold 3 0.598921177691949
 
-    ## RMSE for fold 4 0.56171105710065
+    ## RMSE for fold 4 0.538206990684724
 
-    ## RMSE for fold 5 0.501049505205375
+    ## RMSE for fold 5 0.587564852782322
 
 ``` r
 # calculate mean RMSE and print it
@@ -191,7 +191,7 @@ performances = mean(performances)
 performances
 ```
 
-    ## [1] 0.5532452
+    ## [1] 0.5474375
 
 \[HERE GOES YOUR ANSWER\]
 
@@ -221,13 +221,13 @@ bernie <- subset(df_test, Child.ID==2)
 td <- subset(df_train, Diagnosis == "TD")
 asd <- subset(df_train, Diagnosis == "ASD")
 asd_model <- lmer(CHI_MLU ~ Visit*verbalIQ1 + (1+Visit|Child.ID), data = asd, REML =F, lmerControl(optCtrl=list(xtol_abs=1e-8, ftol_abs=1e-8)))
+
+td_model <- lmer(CHI_MLU ~ Visit*verbalIQ1 + (1+Visit|Child.ID), data = td, REML =F, lmerControl(optCtrl=list(xtol_abs=1e-8, ftol_abs=1e-8)))
 ```
 
     ## boundary (singular) fit: see ?isSingular
 
 ``` r
-td_model <- lmer(CHI_MLU ~ Visit*verbalIQ1 + (1+Visit|Child.ID), data = td, REML =F, lmerControl(optCtrl=list(xtol_abs=1e-8, ftol_abs=1e-8)))
-
 # The development over time
 diff_1 <- abs(bernie$CHI_MLU[1]-mean(td$CHI_MLU[1]))
 diff_2 <- abs(bernie$CHI_MLU[2]-mean(td$CHI_MLU[2]))
@@ -238,31 +238,31 @@ diff_6 <- abs(bernie$CHI_MLU[6]-mean(td$CHI_MLU[6]))
 diff_1
 ```
 
-    ## [1] 0.2924035
+    ## [1] 0.7322037
 
 ``` r
 diff_2
 ```
 
-    ## [1] 0.9085942
+    ## [1] 1.530839
 
 ``` r
 diff_3
 ```
 
-    ## [1] 0.2338733
+    ## [1] 1.796305
 
 ``` r
 diff_4
 ```
 
-    ## [1] 1.119227
+    ## [1] 0.9315263
 
 ``` r
 diff_5
 ```
 
-    ## [1] 0.2402498
+    ## [1] 0.06484296
 
 ``` r
 pred1 <- predict(td_model, bernie, allow.new.levels = TRUE)
@@ -272,7 +272,7 @@ pred2 <- predict(asd_model, bernie, allow.new.levels = TRUE)
 bernie$CHI_MLU[6]-pred1[[6]] #This is Bernies MLU at visit 6
 ```
 
-    ## [1] -0.4689433
+    ## [1] 0.1691664
 
 ``` r
 #Bernie is below expectations of td 
@@ -280,7 +280,7 @@ bernie$CHI_MLU[6]-pred1[[6]] #This is Bernies MLU at visit 6
 bernie$CHI_MLU[6]-pred2[[6]]
 ```
 
-    ## [1] 0.1691664
+    ## [1] -0.4689433
 
 ``` r
 #He is slightly above expectations of an ASD child
